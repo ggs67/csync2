@@ -32,7 +32,7 @@ int include_stack_ptr = 0;
 
 %option noyywrap yylineno
 %option nounput
-%x STRING INCL AUTO
+%x STRING INCL
 %s STRTOKEN
 
 %%
@@ -57,7 +57,7 @@ int include_stack_ptr = 0;
 "include"	{ BEGIN STRTOKEN; return TK_INCL; }
 "compare"	{ BEGIN STRTOKEN; return TK_COMP; }
 "key"		{ BEGIN STRTOKEN; return TK_KEY; }
-"auto"		{ BEGIN AUTO; return TK_AUTO; }
+"auto"		{ return TK_AUTO; }
 
 "action"	{ return TK_ACTION; }
 "pattern"	{ BEGIN STRTOKEN; return TK_PATTERN; }
@@ -76,14 +76,14 @@ int include_stack_ptr = 0;
 
 "no-cygwin-lowercase"	{ return TK_NOCYGLOWER; }
 
-<AUTO>none     { BEGIN STRTOKEN; return TK_AUTO_NONE; }
-<AUTO>first    { BEGIN STRTOKEN; return TK_AUTO_FIRST; }
-<AUTO>younger  { BEGIN STRTOKEN; return TK_AUTO_YOUNGER; }
-<AUTO>older    { BEGIN STRTOKEN; return TK_AUTO_OLDER; }
-<AUTO>bigger   { BEGIN STRTOKEN; return TK_AUTO_BIGGER; }
-<AUTO>smaller  { BEGIN STRTOKEN; return TK_AUTO_SMALLER; }
-<AUTO>left     { BEGIN STRTOKEN; return TK_AUTO_LEFT; }
-<AUTO>right    { BEGIN STRTOKEN; return TK_AUTO_RIGHT; }
+none     { BEGIN STRTOKEN; return TK_AUTO_NONE; }
+first    { BEGIN STRTOKEN; return TK_AUTO_FIRST; }
+younger  { BEGIN STRTOKEN; return TK_AUTO_YOUNGER; }
+older    { BEGIN STRTOKEN; return TK_AUTO_OLDER; }
+bigger   { BEGIN STRTOKEN; return TK_AUTO_BIGGER; }
+smaller  { BEGIN STRTOKEN; return TK_AUTO_SMALLER; }
+left     { BEGIN STRTOKEN; return TK_AUTO_LEFT; }
+right    { BEGIN STRTOKEN; return TK_AUTO_RIGHT; }
 
 "config"	BEGIN(INCL);
 <INCL>[ \t]*	/* eat the whitespaces */
