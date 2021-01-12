@@ -41,6 +41,11 @@ int csync_lowercyg_disable = 0;
 int csync_lowercyg_used = 0;
 #endif
 
+/*
+#define YYDEBUG 1
+yydebug=1;
+*/
+ 
 extern void yyerror(char* text);
 extern int yylex();
 extern int yylineno;
@@ -166,44 +171,23 @@ static void set_key(char *keyfilename)
 	fclose(keyfile);
 }
 
-static void set_auto(char *auto_method)
+static void set_auto(int auto_method)
 {
 	int method_id = -1;
 
 	if (csync_group->auto_method >= 0)
 		csync_fatal("Config error: a group might only have one auto-setting.\n");
 
-	if (!strcmp(auto_method, "none"))
-		method_id = CSYNC_AUTO_METHOD_NONE;
+	
+	method_id = auto_method;
 
-	if (!strcmp(auto_method, "first"))
-		method_id = CSYNC_AUTO_METHOD_FIRST;
-
-	if (!strcmp(auto_method, "younger"))
-		method_id = CSYNC_AUTO_METHOD_YOUNGER;
-
-	if (!strcmp(auto_method, "older"))
-		method_id = CSYNC_AUTO_METHOD_OLDER;
-
-	if (!strcmp(auto_method, "bigger"))
-		method_id = CSYNC_AUTO_METHOD_BIGGER;
-
-	if (!strcmp(auto_method, "smaller"))
-		method_id = CSYNC_AUTO_METHOD_SMALLER;
-
-	if (!strcmp(auto_method, "left"))
-		method_id = CSYNC_AUTO_METHOD_LEFT;
-
-	if (!strcmp(auto_method, "right"))
-		method_id = CSYNC_AUTO_METHOD_RIGHT;
-
+	/*
 	if (method_id < 0)
 		csync_fatal("Config error: Unknown auto-setting '%s' (use "
 			"'none', 'younger', 'older', 'bigger', 'smaller', "
 			"'left' or 'right').\n", auto_method);
-
+	*/
 	csync_group->auto_method = method_id;
-	free(auto_method);
 }
 
 static void set_bak_dir(char *dir)
@@ -427,6 +411,7 @@ static void disable_cygwin_lowercase_hack()
 %expect 2
 
 %union {
+        int ival;
 	char *txt;
 }
 
@@ -437,8 +422,11 @@ static void disable_cygwin_lowercase_hack()
 %token TK_BAK_DIR TK_BAK_GEN TK_DOLOCALONLY
 %token TK_TEMPDIR
 %token TK_LOCK_TIMEOUT
+%token TK_AUTO_NONE TK_AUTO_FIRST TK_AUTO_YOUNGER TK_AUTO_OLDER TK_AUTO_BIGGER
+%token TK_AUTO_SMALLER TK_AUTO_LEFT TK_AUTO_RIGHT
 %token <txt> TK_STRING
 
+%type <ival> auto_method;
 %%
 
 config:
@@ -502,12 +490,23 @@ stmt:
 |	TK_COMP comp_list
 |	TK_KEY TK_STRING
 		{ set_key($2); }
-|	TK_AUTO TK_STRING
+|	TK_AUTO auto_method
 		{ set_auto($2); }
 |	TK_BAK_DIR TK_STRING
 		{ set_bak_dir($2); }
 |	TK_BAK_GEN TK_STRING
 		{ set_bak_gen($2); }
+;
+
+auto_method:
+        TK_AUTO_NONE     { $$=CSYNC_AUTO_METHOD_NONE; }
+|       TK_AUTO_FIRST    { $$=CSYNC_AUTO_METHOD_FIRST; }
+|       TK_AUTO_YOUNGER  { $$=CSYNC_AUTO_METHOD_YOUNGER; }
+|       TK_AUTO_OLDER    { $$=CSYNC_AUTO_METHOD_OLDER; }
+|       TK_AUTO_BIGGER   { $$=CSYNC_AUTO_METHOD_BIGGER; }
+|       TK_AUTO_SMALLER  { $$=CSYNC_AUTO_METHOD_SMALLER; }
+|       TK_AUTO_LEFT     { $$=CSYNC_AUTO_METHOD_LEFT; }
+|       TK_AUTO_RIGHT    { $$=CSYNC_AUTO_METHOD_RIGHT; }
 ;
 
 host_list:

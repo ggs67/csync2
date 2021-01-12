@@ -32,46 +32,58 @@ int include_stack_ptr = 0;
 
 %option noyywrap yylineno
 %option nounput
-%x STRING INCL
+%x STRING INCL AUTO
+%s STRTOKEN
 
 %%
-"{"		{ return TK_BLOCK_BEGIN; }
-"}"		{ return TK_BLOCK_END; }
+"{"		{ BEGIN 0; return TK_BLOCK_BEGIN; }
+"}"		{ BEGIN 0; return TK_BLOCK_END; }
 "("		{ return TK_POPEN; }
 ")"		{ return TK_PCLOSE; }
 
-";"		{ return TK_STEND; }
+";"		{ BEGIN 0; return TK_STEND; }
 ":"		{ return TK_COLON; }
 "@"		{ return TK_AT; }
 
-"nossl"		{ return TK_NOSSL; }
-"ignore"	{ return TK_IGNORE; }
-"database"	{ return TK_DATABASE; }
+<STRTOKEN>[^ \r\n\t@;\(\)#"]*[^ \r\n\t@:;\(\)#"] { yylval.txt=strdup(yytext); return TK_STRING; }
 
-"group"		{ return TK_GROUP; }
-"host"		{ return TK_HOST; }
-"exclude"	{ return TK_EXCL; }
-"include"	{ return TK_INCL; }
-"compare"	{ return TK_COMP; }
-"key"		{ return TK_KEY; }
-"auto"		{ return TK_AUTO; }
+"nossl"		{ BEGIN STRTOKEN; return TK_NOSSL; }
+"ignore"	{ BEGIN STRTOKEN; return TK_IGNORE; }
+"database"	{ BEGIN STRTOKEN; return TK_DATABASE; }
+
+"group"		{ BEGIN STRTOKEN; return TK_GROUP; }
+"host"		{ BEGIN STRTOKEN; return TK_HOST; }
+"exclude"	{ BEGIN STRTOKEN; return TK_EXCL; }
+"include"	{ BEGIN STRTOKEN; return TK_INCL; }
+"compare"	{ BEGIN STRTOKEN; return TK_COMP; }
+"key"		{ BEGIN STRTOKEN; return TK_KEY; }
+"auto"		{ BEGIN AUTO; return TK_AUTO; }
 
 "action"	{ return TK_ACTION; }
-"pattern"	{ return TK_PATTERN; }
-"exec"		{ return TK_EXEC; }
-"logfile"	{ return TK_LOGFILE; }
+"pattern"	{ BEGIN STRTOKEN; return TK_PATTERN; }
+"exec"		{ BEGIN STRTOKEN; return TK_EXEC; }
+"logfile"	{ BEGIN STRTOKEN; return TK_LOGFILE; }
 "do-local"	{ return TK_DOLOCAL; }
 "do-local-only"	{ return TK_DOLOCALONLY; }
 
-"prefix"	{ return TK_PREFIX; }
-"on"		{ return TK_ON; }
+"prefix"	{ BEGIN STRTOKEN; return TK_PREFIX; }
+"on"		{ BEGIN STRTOKEN; return TK_ON; }
 
-"lock-timeout"		{ return TK_LOCK_TIMEOUT; }
-"tempdir"		{ return TK_TEMPDIR; }
-"backup-directory"	{ return TK_BAK_DIR; }
-"backup-generations"	{ return TK_BAK_GEN; }
+"lock-timeout"		{ BEGIN STRTOKEN; return TK_LOCK_TIMEOUT; }
+"tempdir"		{ BEGIN STRTOKEN; return TK_TEMPDIR; }
+"backup-directory"	{ BEGIN STRTOKEN; return TK_BAK_DIR; }
+"backup-generations"	{ BEGIN STRTOKEN; return TK_BAK_GEN; }
 
 "no-cygwin-lowercase"	{ return TK_NOCYGLOWER; }
+
+<AUTO>none     { BEGIN STRTOKEN; return TK_AUTO_NONE; }
+<AUTO>first    { BEGIN STRTOKEN; return TK_AUTO_FIRST; }
+<AUTO>younger  { BEGIN STRTOKEN; return TK_AUTO_YOUNGER; }
+<AUTO>older    { BEGIN STRTOKEN; return TK_AUTO_OLDER; }
+<AUTO>bigger   { BEGIN STRTOKEN; return TK_AUTO_BIGGER; }
+<AUTO>smaller  { BEGIN STRTOKEN; return TK_AUTO_SMALLER; }
+<AUTO>left     { BEGIN STRTOKEN; return TK_AUTO_LEFT; }
+<AUTO>right    { BEGIN STRTOKEN; return TK_AUTO_RIGHT; }
 
 "config"	BEGIN(INCL);
 <INCL>[ \t]*	/* eat the whitespaces */
@@ -108,5 +120,4 @@ int include_stack_ptr = 0;
 [ \r\n\t]+	/* whitespaces are just delimiters */
 #[^\r\n]*	/* this is a comment */
 
-[^ \r\n\t@;\(\)#"]*[^ \r\n\t@:;\(\)#"] { yylval.txt=strdup(yytext); return TK_STRING; }
 %%
