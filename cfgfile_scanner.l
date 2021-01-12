@@ -58,6 +58,7 @@ int include_stack_ptr = 0;
 "compare"	{ BEGIN STRTOKEN; return TK_COMP; }
 "key"		{ BEGIN STRTOKEN; return TK_KEY; }
 "auto"		{ BEGIN AUTO; return TK_AUTO; }
+"if"            { return TK_IF; }
 
 "action"	{ return TK_ACTION; }
 "pattern"	{ BEGIN STRTOKEN; return TK_PATTERN; }

@@ -18,6 +18,13 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+%code requires {
+    struct AutoArgs {
+        int  method;
+        char *condition;
+    };
+}
+
 %{
 #include "csync2.h"
 #include <stdlib.h>
@@ -41,10 +48,10 @@ int csync_lowercyg_disable = 0;
 int csync_lowercyg_used = 0;
 #endif
 
-/*
+
 #define YYDEBUG 1
 yydebug=1;
-*/
+
  
 extern void yyerror(char* text);
 extern int yylex();
@@ -171,7 +178,7 @@ static void set_key(char *keyfilename)
 	fclose(keyfile);
 }
 
-static void set_auto(int auto_method)
+static void set_auto(int auto_method,char *condition)
 {
 	int method_id = -1;
 
@@ -188,6 +195,7 @@ static void set_auto(int auto_method)
 			"'left' or 'right').\n", auto_method);
 	*/
 	csync_group->auto_method = method_id;
+	printf("set_auto(%d, %s)\n",method_id,(condition==NULL)?"NULL":condition);
 }
 
 static void set_bak_dir(char *dir)
@@ -413,6 +421,7 @@ static void disable_cygwin_lowercase_hack()
 %union {
         int ival;
 	char *txt;
+        struct AutoArgs autoArgs;
 }
 
 %token TK_BLOCK_BEGIN TK_BLOCK_END TK_STEND TK_AT TK_AUTO
@@ -424,9 +433,11 @@ static void disable_cygwin_lowercase_hack()
 %token TK_LOCK_TIMEOUT
 %token TK_AUTO_NONE TK_AUTO_FIRST TK_AUTO_YOUNGER TK_AUTO_OLDER TK_AUTO_BIGGER
 %token TK_AUTO_SMALLER TK_AUTO_LEFT TK_AUTO_RIGHT
+%token TK_IF
 %token <txt> TK_STRING
 
 %type <ival> auto_method;
+%type <autoArgs> auto;
 %%
 
 config:
@@ -490,13 +501,19 @@ stmt:
 |	TK_COMP comp_list
 |	TK_KEY TK_STRING
 		{ set_key($2); }
-|	TK_AUTO auto_method
-		{ set_auto($2); }
+|	auto
+                { set_auto($1.method,$1.condition); }
 |	TK_BAK_DIR TK_STRING
 		{ set_bak_dir($2); }
 |	TK_BAK_GEN TK_STRING
 		{ set_bak_gen($2); }
 ;
+
+auto :  TK_AUTO auto_method TK_IF TK_STRING
+                { $$.method=$2; $$.condition=$4;  }
+     |  TK_AUTO auto_method
+                { $$.method=$2; $$.condition=NULL;  }
+     ;
 
 auto_method:
         TK_AUTO_NONE     { $$=CSYNC_AUTO_METHOD_NONE; }
