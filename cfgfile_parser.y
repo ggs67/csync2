@@ -25,6 +25,8 @@
     };
 }
 
+%locations
+
 %{
 #include "csync2.h"
 #include <stdlib.h>
@@ -32,7 +34,8 @@
 #include <string.h>
 #include <fnmatch.h>
 #include <ctype.h>
-
+#include <stdarg.h>
+  
 struct csync_group  *csync_group  = 0;
 struct csync_prefix *csync_prefix = 0;
 struct csync_nossl  *csync_nossl  = 0;
@@ -53,15 +56,10 @@ int csync_lowercyg_used = 0;
 yydebug=1;
 
  
-extern void yyerror(char* text);
+extern void yyerror(char *msg,...);
 extern int yylex();
 extern int yylineno;
-
-void yyerror(char *text)
-{
-	csync_fatal("Near line %d: %s\n", yylineno, text);
-}
-
+   
 static void new_group(char *name)
 {
 	int static autonum = 1;
@@ -595,4 +593,30 @@ action_exec_list:
 |	action_exec_list TK_STRING
 		{ add_action_exec($2); }
 ;
+
+%%
+
+extern YYLTYPE yyloc;
+
+void yyerror(char *msg,...)
+{
+  va_list ap;
+  va_start(ap, msg);
+  char *buf;
+  size_t msglen;
+
+  /* Format message */
+  msglen=vsnprintf(NULL, 0, msg, ap);
+  buf=malloc(msglen+1);
+  vsnprintf(buf, 0, msg, ap);
+
+  if(yyloc.first_line)
+  {
+    csync_fatal("Near line %d.%d-%d.%d: %s\n", yyloc.first_line, yyloc.first_column, yyloc.last_line, yyloc.last_column, buf);
+  }
+  else
+  {
+    csync_fatal("Near line %d: %s\n", yylineno, buf);
+  }
+}
 

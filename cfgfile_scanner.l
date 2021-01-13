@@ -57,7 +57,7 @@ int include_stack_ptr = 0;
 "include"	{ BEGIN STRTOKEN; return TK_INCL; }
 "compare"	{ BEGIN STRTOKEN; return TK_COMP; }
 "key"		{ BEGIN STRTOKEN; return TK_KEY; }
-"auto"		{ BEGIN AUTO; return TK_AUTO; }
+"auto"		{ return TK_AUTO; }
 "if"            { return TK_IF; }
 
 "action"	{ return TK_ACTION; }
@@ -77,14 +77,14 @@ int include_stack_ptr = 0;
 
 "no-cygwin-lowercase"	{ return TK_NOCYGLOWER; }
 
-<AUTO>none     { BEGIN STRTOKEN; return TK_AUTO_NONE; }
-<AUTO>first    { BEGIN STRTOKEN; return TK_AUTO_FIRST; }
-<AUTO>younger  { BEGIN STRTOKEN; return TK_AUTO_YOUNGER; }
-<AUTO>older    { BEGIN STRTOKEN; return TK_AUTO_OLDER; }
-<AUTO>bigger   { BEGIN STRTOKEN; return TK_AUTO_BIGGER; }
-<AUTO>smaller  { BEGIN STRTOKEN; return TK_AUTO_SMALLER; }
-<AUTO>left     { BEGIN STRTOKEN; return TK_AUTO_LEFT; }
-<AUTO>right    { BEGIN STRTOKEN; return TK_AUTO_RIGHT; }
+none     { return TK_AUTO_NONE; }
+first    { return TK_AUTO_FIRST; }
+younger  { return TK_AUTO_YOUNGER; }
+older    { return TK_AUTO_OLDER; }
+bigger   { return TK_AUTO_BIGGER; }
+smaller  { return TK_AUTO_SMALLER; }
+left     { return TK_AUTO_LEFT; }
+right    { return TK_AUTO_RIGHT; }
 
 "config"	BEGIN(INCL);
 <INCL>[ \t]*	/* eat the whitespaces */
